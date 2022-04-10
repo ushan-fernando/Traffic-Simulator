@@ -13,6 +13,16 @@ if 'SUMO_HOME' in os.environ:
 else:
     sys.exit("Please declare environment variable 'SUMO_HOME'")
 
+# Creating Nessary Directories
+output_dir = os.path.join("outputs")
+queue_path = os.path.join(output_dir, "queue")
+statistics_path = os.path.join(output_dir, "statistics")
+
+if not os.path.exists(queue_path):
+    os.makedirs(queue_path)
+if not os.path.exists(statistics_path):
+    os.makedirs(statistics_path)
+
 from sumolib import checkBinary
 import traci
 
