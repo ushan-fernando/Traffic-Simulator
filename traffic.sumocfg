@@ -6,8 +6,8 @@
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
 
     <input>
-        <net-file value="C:\Sumo\TrafficSimulator\traffic.net.xml"/>
-        <route-files value="C:\Sumo\TrafficSimulator\traffic.rou.xml"/>
+        <net-file value="traffic.net.xml"/>
+        <route-files value="traffic.rou.xml"/>
     </input>
 
 </configuration>
