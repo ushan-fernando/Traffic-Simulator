@@ -152,7 +152,10 @@ class TrafficSimulator:
 
         # Writing XML file
         tree = ET.ElementTree(routes)
-        ET.indent(tree)
+        if sys.version_info.major >= 3 and sys.version_info.minor >= 9:
+            ET.indent(tree)
+        else:
+            sys.stderr.write("XML indentation only works for python version 3.9 and above. Skipping\n")
         tree.write(file_name)
 
 
