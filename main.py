@@ -6,6 +6,7 @@ import sys
 import optparse
 import numpy as np
 from helper import array2csv, plot_graph
+from fuzzy_controller import fuzzy_logic_controller
 
 import xml.etree.ElementTree as ET
 
@@ -157,28 +158,74 @@ class TrafficSimulator:
         else:
             sys.stderr.write("XML indentation only works for python version 3.9 and above. Skipping\n")
         tree.write(file_name)
-
-
-    def run(self):
+    
+    def runFixed(self):
         step = 0
+
         while traci.simulation.getMinExpectedNumber() > 0:
             traci.simulationStep()
+
             numVehiclesLane1 = traci.lane.getLastStepVehicleNumber(self._lane1)
             numVehiclesLane3 = traci.lane.getLastStepVehicleNumber(self._lane3)
             numVehiclesLane2 = traci.lane.getLastStepVehicleNumber(self._lane2)
-            numVehiclesLane4 = traci.lane.getLastStepVehicleNumber(self._lane4)           
+            numVehiclesLane4 = traci.lane.getLastStepVehicleNumber(self._lane4)        
 
             if traci.trafficlight.getPhase("J2") == 0:
                 if numVehiclesLane1 != 0:
                     self.waitingTimeLane1.append((step, traci.lane.getWaitingTime(self._lane1) / numVehiclesLane1))
                 if numVehiclesLane3 != 0:
                     self.waitingTimeLane3.append((step, traci.lane.getWaitingTime(self._lane3) / numVehiclesLane3))
+
             if traci.trafficlight.getPhase("J2") == 2:
                 if numVehiclesLane2 != 0:
                     self.waitingTimeLane2.append((step, traci.lane.getWaitingTime(self._lane2) / numVehiclesLane2))
                 if numVehiclesLane4 != 0:
                     self.waitingTimeLane4.append((step, traci.lane.getWaitingTime(self._lane4) / numVehiclesLane4))        
-                
+
+            step += 1
+
+        traci.close()
+        sys.stdout.flush()
+
+
+    def runFuzzy(self):
+        step = 0
+        fuzzyLogic = fuzzy_logic_controller()
+
+        while traci.simulation.getMinExpectedNumber() > 0:
+            traci.simulationStep()
+
+            numVehiclesLane1 = traci.lane.getLastStepVehicleNumber(self._lane1)
+            numVehiclesLane3 = traci.lane.getLastStepVehicleNumber(self._lane3)
+            numVehiclesLane2 = traci.lane.getLastStepVehicleNumber(self._lane2)
+            numVehiclesLane4 = traci.lane.getLastStepVehicleNumber(self._lane4)        
+
+            if traci.trafficlight.getPhase("J2") == 0:
+                fuzzyLogic.input['arrivingVehicles'] = numVehiclesLane1 + numVehiclesLane3
+                fuzzyLogic.input['queuingVehicles'] = numVehiclesLane2 + numVehiclesLane4
+
+                if numVehiclesLane1 != 0:
+                    self.waitingTimeLane1.append((step, traci.lane.getWaitingTime(self._lane1) / numVehiclesLane1))
+                if numVehiclesLane3 != 0:
+                    self.waitingTimeLane3.append((step, traci.lane.getWaitingTime(self._lane3) / numVehiclesLane3))
+
+            if traci.trafficlight.getPhase("J2") == 2:
+                fuzzyLogic.input['arrivingVehicles'] = numVehiclesLane2 + numVehiclesLane4
+                fuzzyLogic.input['queuingVehicles'] = numVehiclesLane1 + numVehiclesLane3
+
+                if numVehiclesLane2 != 0:
+                    self.waitingTimeLane2.append((step, traci.lane.getWaitingTime(self._lane2) / numVehiclesLane2))
+                if numVehiclesLane4 != 0:
+                    self.waitingTimeLane4.append((step, traci.lane.getWaitingTime(self._lane4) / numVehiclesLane4))        
+
+            fuzzyLogic.compute()
+            output = fuzzyLogic.output['cycleTime']
+            phase = traci.trafficlight.getPhase('J2')
+
+            if (phase == 0 or phase == 2):
+                remainingDuration = traci.trafficlight.getNextSwitch('J2') - traci.simulation.getTime()
+                traci.trafficlight.setPhaseDuration('J2', min(remainingDuration, output))
+            
             step += 1
 
         traci.close()
@@ -223,5 +270,5 @@ if __name__ == "__main__":
     # subprocess and then the python script connects and runs
     traci.start([sumoBinary, "-c", "traffic.sumocfg",
                              "--queue-output", "outputs/queue/queue.xml"])
-    traffic.run()
+    traffic.runFuzzy()
     traffic.generate_output_statistics()
