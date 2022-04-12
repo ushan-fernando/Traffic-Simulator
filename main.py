@@ -29,6 +29,10 @@ if not os.path.exists(statistics_path):
 from sumolib import checkBinary
 import traci
 
+# Creating Options
+optParser = optparse.OptionParser()
+optParser.add_option("--nogui", action="store_true",
+                    default=False, help="run the commandline version of sumo")
 # ------- Constants -------
 SEED = 42
 STEPS = 3600
@@ -54,6 +58,14 @@ class TrafficSimulator:
         # Saving Variables
         self.numberOfCars = numberOfCars
         self.steps = steps
+        self.fixedCycleTime = fixedCycleTime
+
+        # this script has been called from the command line. It will start sumo as a
+        # server, then connect and run
+        if gui:
+            self.sumoBinary = checkBinary('sumo')
+        else:
+            self.sumoBinary = checkBinary('sumo-gui')
 
         self.waitingTimeLane1 = []
         self.waitingTimeLane2 = []
@@ -286,14 +298,6 @@ class TrafficSimulator:
         traci.close()
         sys.stdout.flush()
 
-
-    def get_options(self):
-        optParser = optparse.OptionParser()
-        optParser.add_option("--nogui", action="store_true",
-                            default=False, help="run the commandline version of sumo")
-        options, args = optParser.parse_args()
-        return options
-    
     def generate_output_statistics(self):
         array2csv(["timestep", "waitingtime-lane1"], self.waitingTimeLane1, "outputs/statistics/waitingtime-lane1.csv")
         array2csv(["timestep", "waitingtime-lane2"], self.waitingTimeLane2, "outputs/statistics/waitingtime-lane2.csv")
@@ -308,22 +312,13 @@ class TrafficSimulator:
 
 # this is the main entry point of this script
 if __name__ == "__main__":
-    traffic = TrafficSimulator(N, STEPS)
-    options = traffic.get_options()
-
-    # this script has been called from the command line. It will start sumo as a
-    # server, then connect and run
-    if options.nogui:
-        sumoBinary = checkBinary('sumo')
-    else:
-        sumoBinary = checkBinary('sumo-gui')
+    options, args = optParser.parse_args()
+    traffic = TrafficSimulator(N, STEPS, options.nogui)
 
     # first, generate the route file for this simulation
     traffic.generate_routefile("traffic.rou.xml")
 
     # this is the normal way of using traci. sumo is started as a
     # subprocess and then the python script connects and runs
-    traci.start([sumoBinary, "-c", "traffic.sumocfg",
-                             "--queue-output", "outputs/queue/queue.xml"])
-    traffic.runFuzzy()
+    traffic.runFixed()
     traffic.generate_output_statistics()
