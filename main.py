@@ -189,7 +189,7 @@ class TrafficSimulator:
             sys.stderr.write("XML indentation only works for python version 3.9 and above. Skipping\n")
         tree.write(file_name)
     
-    def runFixed(self, cycleTime = -1):
+    def run_fixed(self, cycleTime = -1):
         """
         Running the simulation with traffic light cycle time at a fixed time.
 
@@ -220,25 +220,35 @@ class TrafficSimulator:
                                 "--queue-output", "outputs/queue/queue.xml"])
         step = 0
 
+        # Alias Lanes
+        lane1 = self.waitingTime["Lane 1"]["Fixed"]
+        lane2 = self.waitingTime["Lane 2"]["Fixed"]
+        lane3 = self.waitingTime["Lane 3"]["Fixed"]
+        lane4 = self.waitingTime["Lane 4"]["Fixed"]
+
         while traci.simulation.getMinExpectedNumber() > 0:
             traci.simulationStep()
 
             numVehiclesLane1 = traci.lane.getLastStepVehicleNumber(self._lane1)
             numVehiclesLane3 = traci.lane.getLastStepVehicleNumber(self._lane3)
             numVehiclesLane2 = traci.lane.getLastStepVehicleNumber(self._lane2)
-            numVehiclesLane4 = traci.lane.getLastStepVehicleNumber(self._lane4)        
+            numVehiclesLane4 = traci.lane.getLastStepVehicleNumber(self._lane4)
 
             if traci.trafficlight.getPhase("J2") == 0:
                 if numVehiclesLane1 != 0:
-                    self.waitingTimeLane1.append((step, traci.lane.getWaitingTime(self._lane1) / numVehiclesLane1))
+                    lane1[0].append(step)
+                    lane1[1].append(traci.lane.getWaitingTime(self._lane1) / numVehiclesLane1)
                 if numVehiclesLane3 != 0:
-                    self.waitingTimeLane3.append((step, traci.lane.getWaitingTime(self._lane3) / numVehiclesLane3))
+                    lane3[0].append(step)
+                    lane3[1].append(traci.lane.getWaitingTime(self._lane3) / numVehiclesLane3)
 
             if traci.trafficlight.getPhase("J2") == 2:
                 if numVehiclesLane2 != 0:
-                    self.waitingTimeLane2.append((step, traci.lane.getWaitingTime(self._lane2) / numVehiclesLane2))
+                    lane2[0].append(step)
+                    lane2[1].append(traci.lane.getWaitingTime(self._lane2) / numVehiclesLane2)
                 if numVehiclesLane4 != 0:
-                    self.waitingTimeLane4.append((step, traci.lane.getWaitingTime(self._lane4) / numVehiclesLane4))        
+                    lane4[0].append(step)
+                    lane4[1].append(traci.lane.getWaitingTime(self._lane4) / numVehiclesLane4)
 
             step += 1
 
