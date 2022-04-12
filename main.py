@@ -67,10 +67,12 @@ class TrafficSimulator:
         else:
             self.sumoBinary = checkBinary('sumo-gui')
 
-        self.waitingTimeLane1 = []
-        self.waitingTimeLane2 = []
-        self.waitingTimeLane3 = []
-        self.waitingTimeLane4 = []
+        self.waitingTime = {
+            "Lane 1": {"Fixed": ([], []), "Fuzzy": ([], [])},
+            "Lane 2": {"Fixed": ([], []), "Fuzzy": ([], [])},
+            "Lane 3": {"Fixed": ([], []), "Fuzzy": ([], [])},
+            "Lane 4": {"Fixed": ([], []), "Fuzzy": ([], [])},
+        }
 
         self._lane1 = "E0_0"
         self._lane2 = "E2_0"
