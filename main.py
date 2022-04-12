@@ -298,25 +298,38 @@ class TrafficSimulator:
         traci.close()
         sys.stdout.flush()
 
-    def generate_output_statistics(self):
+    def generate_output_statistics(self, trafficLightType, showGraph = True):
         """
-        Generating Statistics
+        Generating Statistics for a specific traffic light type
+
+        Parameters
+        ----------
+        trafficLightType
+            The type of traffic light
+            It can be "Fixed or "Fuzzy"
+        showGraph
+            Determines to show the graph or not
 
         Returns
         -------
         None
         """
         # Writing csv to file
-        array2csv(["timestep", "waitingtime-lane1"], self.waitingTimeLane1, "outputs/statistics/waitingtime-lane1.csv")
-        array2csv(["timestep", "waitingtime-lane2"], self.waitingTimeLane2, "outputs/statistics/waitingtime-lane2.csv")
-        array2csv(["timestep", "waitingtime-lane3"], self.waitingTimeLane3, "outputs/statistics/waitingtime-lane3.csv")
-        array2csv(["timestep", "waitingtime-lane4"], self.waitingTimeLane4, "outputs/statistics/waitingtime-lane4.csv")
+        array2csv(["timestep", "waitingtime-lane1"], self.waitingTime["Lane 1"][trafficLightType],
+                  f"outputs/statistics/waitingtime-{trafficLightType}-lane1.csv")
+        array2csv(["timestep", "waitingtime-lane2"], self.waitingTime["Lane 2"][trafficLightType],
+                  f"outputs/statistics/waitingtime-{trafficLightType}-lane2.csv")
+        array2csv(["timestep", "waitingtime-lane3"], self.waitingTime["Lane 3"][trafficLightType],
+                  f"outputs/statistics/waitingtime-{trafficLightType}-lane3.csv")
+        array2csv(["timestep", "waitingtime-lane4"], self.waitingTime["Lane 4"][trafficLightType],
+                  f"outputs/statistics/waitingtime-{trafficLightType}-lane4.csv")
 
         # Plotting the graph
-        plot_graph(self.waitingTimeLane1, "Lane 1")
-        plot_graph(self.waitingTimeLane2, "Lane 2")
-        plot_graph(self.waitingTimeLane3, "Lane 3")
-        plot_graph(self.waitingTimeLane4, "Lane 4")
+        if showGraph:
+            plot_graph(self.waitingTime["Lane 1"][trafficLightType], "Lane 1")
+            plot_graph(self.waitingTime["Lane 2"][trafficLightType], "Lane 2")
+            plot_graph(self.waitingTime["Lane 3"][trafficLightType], "Lane 3")
+            plot_graph(self.waitingTime["Lane 4"][trafficLightType], "Lane 4")
 
 
 # this is the main entry point of this script
@@ -329,5 +342,5 @@ if __name__ == "__main__":
 
     # this is the normal way of using traci. sumo is started as a
     # subprocess and then the python script connects and runs
-    traffic.runFixed()
-    traffic.generate_output_statistics()
+    traffic.run_fixed()
+    traffic.generate_output_statistics("Fixed")
