@@ -69,10 +69,66 @@ class TrafficSimulator:
             self.sumoBinary = checkBinary('sumo-gui')
 
         self.waitingTime = {
-            "Lane 1": {"Fixed": ([], []), "Fuzzy": ([], [])},
-            "Lane 2": {"Fixed": ([], []), "Fuzzy": ([], [])},
-            "Lane 3": {"Fixed": ([], []), "Fuzzy": ([], [])},
-            "Lane 4": {"Fixed": ([], []), "Fuzzy": ([], [])},
+            "Lane 1": {
+                "Fixed": {
+                    "steps": [],
+                    "waitTime": [],
+                    "averageOvertime": [],
+                },
+                "Fuzzy": {
+                    "steps": [],
+                    "waitTime": [],
+                    "averageOvertime": [],
+                }
+            },
+            "Lane 2": {
+                "Fixed": {
+                    "steps": [],
+                    "waitTime": [],
+                    "averageOvertime": [],
+                },
+                "Fuzzy": {
+                    "steps": [],
+                    "waitTime": [],
+                    "averageOvertime": [],
+                }
+            },
+            "Lane 3": {
+                "Fixed": {
+                    "steps": [],
+                    "waitTime": [],
+                    "averageOvertime": [],
+                },
+                "Fuzzy": {
+                    "steps": [],
+                    "waitTime": [],
+                    "averageOvertime": [],
+                }
+            },
+            "Lane 4": {
+                "Fixed": {
+                    "steps": [],
+                    "waitTime": [],
+                    "averageOvertime": [],
+                },
+                "Fuzzy": {
+                    "steps": [],
+                    "waitTime": [],
+                    "averageOvertime": [],
+                }
+            },
+            "All": {
+                "Fixed": {
+                    "steps": [],
+                    "waitTime": [],
+                    "averageOvertime": [],
+                },
+                "Fuzzy": {
+                    "steps": [],
+                    "waitTime": [],
+                    "averageOvertime": [],
+                }
+            },
         }
 
         self._lane1 = "E0_0"
@@ -237,19 +293,25 @@ class TrafficSimulator:
 
             if traci.trafficlight.getPhase("J2") == 0:
                 if numVehiclesLane1 != 0:
-                    lane1[0].append(step)
-                    lane1[1].append(traci.lane.getWaitingTime(self._lane1) / numVehiclesLane1)
+                    lane1["steps"].append(step)
+                    lane1["waitTime"].append(traci.lane.getWaitingTime(self._lane1) / numVehiclesLane1)
+#                    lane1[3].append(np.mean(lane1[1]))
+#                    lane1[2] = signal.convolve(lane1[1],b) #filter output using convolution
+                    #lane1[2] = signal.lfilter(b,a,lane1[1]) #filter output using lfilter function
                 if numVehiclesLane3 != 0:
-                    lane3[0].append(step)
-                    lane3[1].append(traci.lane.getWaitingTime(self._lane3) / numVehiclesLane3)
+                    lane3["steps"].append(step)
+                    lane3["waitTime"].append(traci.lane.getWaitingTime(self._lane3) / numVehiclesLane3)
+#                    lane3[2].append(np.mean(lane3[1]))
 
             if traci.trafficlight.getPhase("J2") == 2:
                 if numVehiclesLane2 != 0:
-                    lane2[0].append(step)
-                    lane2[1].append(traci.lane.getWaitingTime(self._lane2) / numVehiclesLane2)
+                    lane2["steps"].append(step)
+                    lane2["waitTime"].append(traci.lane.getWaitingTime(self._lane2) / numVehiclesLane2)
+#                    lane2[2].append(np.mean(lane2[1]))
                 if numVehiclesLane4 != 0:
-                    lane4[0].append(step)
-                    lane4[1].append(traci.lane.getWaitingTime(self._lane4) / numVehiclesLane4)
+                    lane4["steps"].append(step)
+                    lane4["waitTime"].append(traci.lane.getWaitingTime(self._lane4) / numVehiclesLane4)
+#                    lane4[2].append(np.mean(lane4[1]))
 
             step += 1
 
@@ -291,22 +353,22 @@ class TrafficSimulator:
                 fuzzyLogic.input['queuingVehicles'] = numVehiclesLane2 + numVehiclesLane4
 
                 if numVehiclesLane1 != 0:
-                    lane1[0].append(step)
-                    lane1[1].append(traci.lane.getWaitingTime(self._lane1) / numVehiclesLane1)
+                    lane1["steps"].append(step)
+                    lane1["waitTime"].append(traci.lane.getWaitingTime(self._lane1) / numVehiclesLane1)
                 if numVehiclesLane3 != 0:
-                    lane3[0].append(step)
-                    lane3[1].append(traci.lane.getWaitingTime(self._lane3) / numVehiclesLane3)
+                    lane3["steps"].append(step)
+                    lane3["waitTime"].append(traci.lane.getWaitingTime(self._lane3) / numVehiclesLane3)
 
             if traci.trafficlight.getPhase("J2") == 2:
                 fuzzyLogic.input['arrivingVehicles'] = numVehiclesLane2 + numVehiclesLane4
                 fuzzyLogic.input['queuingVehicles'] = numVehiclesLane1 + numVehiclesLane3
 
                 if numVehiclesLane2 != 0:
-                    lane2[0].append(step)
-                    lane2[1].append(traci.lane.getWaitingTime(self._lane2) / numVehiclesLane2)
+                    lane2["steps"].append(step)
+                    lane2["waitTime"].append(traci.lane.getWaitingTime(self._lane2) / numVehiclesLane2)
                 if numVehiclesLane4 != 0:
-                    lane4[0].append(step)
-                    lane4[1].append(traci.lane.getWaitingTime(self._lane4) / numVehiclesLane4)
+                    lane4["steps"].append(step)
+                    lane4["waitTime"].append(traci.lane.getWaitingTime(self._lane4) / numVehiclesLane4)
 
             fuzzyLogic.compute()
             output = fuzzyLogic.output['cycleTime']

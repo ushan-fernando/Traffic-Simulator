@@ -10,13 +10,13 @@ def array2csv(headerArray, dataArray, outputFile):
 
     N = len(dataArray[0])
     for i in range(N):
-        csvLine = [dataArray[0][i], dataArray[1][i]]
+        csvLine = [dataArray["steps"][i], dataArray["waitTime"][i]]
         csvFileWriter.writerow(csvLine)
 
 def plot_graph(dataArray, title):
     N = len(dataArray)
-    x = dataArray[0]
-    y = dataArray[1]
+    x = dataArray["steps"]
+    y = dataArray["waitTime"]
 
     plt.plot(x, y)
     plt.title(title)
