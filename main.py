@@ -30,15 +30,43 @@ if not os.path.exists(statistics_path):
 from sumolib import checkBinary
 import traci
 
+# Creating Options
+optParser = optparse.OptionParser()
+optParser.add_option("--nogui", action="store_true",
+                    default=False, help="run the commandline version of sumo")
 # ------- Constants -------
 SEED = 42
 STEPS = 3600
 N = 3000
 
 class TrafficSimulator:
-    def __init__(self, numberOfCars, steps):
+    """
+    Create a Traffic Simulator
+
+    Parameters
+    ----------
+    numberOfCars
+        Number of cars to simluate
+    steps
+        The amount of virtual time to simulate
+    gui
+        Set to run with gui or no
+    fixedCycleTime
+        The amount of virtual time per cycle for fixed time traffic light simulation
+        Default is 42 virtual seconds
+    """
+    def __init__(self, numberOfCars, steps, gui, fixedCycleTime = 42):
+        # Saving Variables
         self.numberOfCars = numberOfCars
         self.steps = steps
+        self.fixedCycleTime = fixedCycleTime
+
+        # this script has been called from the command line. It will start sumo as a
+        # server, then connect and run
+        if gui:
+            self.sumoBinary = checkBinary('sumo')
+        else:
+            self.sumoBinary = checkBinary('sumo-gui')
 
         self.waitingTimeLane1 = []
         self.waitingTimeLane2 = []
@@ -160,7 +188,35 @@ class TrafficSimulator:
             sys.stderr.write("XML indentation only works for python version 3.9 and above. Skipping\n")
         tree.write(file_name)
     
-    def runFixed(self):
+    def runFixed(self, cycleTime = -1):
+        """
+        Running the simulation with traffic light cycle time at a fixed time.
+
+        Parameters
+        ----------
+        cycleTime
+            The cycle time of the fixed timed traffic light
+            Default is set to the value set during object creation
+
+        Returns
+        -------
+        None
+        """
+        # Setting Cycle Time
+        if cycleTime == -1:
+            cycleTime = self.fixedCycleTime
+
+        # Changing Cycle Time
+        tree = ET.parse("traffic.net.xml")
+        root = tree.getroot()
+        tlLogic = root.findall("tlLogic")[0]
+        tlLogic[0].attrib["duration"] = str(cycleTime)
+        tlLogic[2].attrib["duration"]= str(cycleTime)
+        tree.write('traffic.net.xml')
+
+        # Starting SUMO
+        traci.start([self.sumoBinary, "-c", "traffic.sumocfg",
+                                "--queue-output", "outputs/queue/queue.xml"])
         step = 0
 
         while traci.simulation.getMinExpectedNumber() > 0:
@@ -190,6 +246,17 @@ class TrafficSimulator:
 
 
     def runFuzzy(self):
+        """
+        Running the simulation with Fuzzy Logic
+
+        Returns
+        -------
+        None
+        """
+        # Starting SUMO
+        traci.start([self.sumoBinary, "-c", "traffic.sumocfg",
+                                "--queue-output", "outputs/queue/queue.xml"])
+
         step = 0
         fuzzyLogic = fuzzy_logic_controller()
 
@@ -232,23 +299,21 @@ class TrafficSimulator:
         traci.close()
         sys.stdout.flush()
 
-
-    def get_options(self):
-        optParser = optparse.OptionParser()
-        optParser.add_option("--nogui", action="store_true",
-                            default=False, help="run the commandline version of sumo")
-        options, args = optParser.parse_args()
-        return options
-    
-    def get_output_statistics(self):
-        return [self.waitingTimeLane1, self.waitingTimeLane2, self.waitingTimeLane3, self.waitingTimeLane4]
-    
     def generate_output_statistics(self, name):
+        """
+        Generating Statistics
+
+        Returns
+        -------
+        None
+        """
+        # Writing csv to file
         array2csv(["timestep", "waitingtime-lane1"], self.waitingTimeLane1, "outputs/statistics/" + name + "-waitingtime-lane1.csv")
         array2csv(["timestep", "waitingtime-lane2"], self.waitingTimeLane2, "outputs/statistics/" + name + "-waitingtime-lane2.csv")
         array2csv(["timestep", "waitingtime-lane3"], self.waitingTimeLane3, "outputs/statistics/" + name + "-waitingtime-lane3.csv")
         array2csv(["timestep", "waitingtime-lane4"], self.waitingTimeLane4, "outputs/statistics/" + name + "-waitingtime-lane4.csv")
 
+        # Plotting the graph
         plot_graph(self.waitingTimeLane1, "Lane 1")
         plot_graph(self.waitingTimeLane2, "Lane 2")
         plot_graph(self.waitingTimeLane3, "Lane 3")
@@ -257,22 +322,14 @@ class TrafficSimulator:
 
 # this is the main entry point of this script
 if __name__ == "__main__":
-    traffic = TrafficSimulator(N, STEPS)
-    options = traffic.get_options()
-
-    # this script has been called from the command line. It will start sumo as a
-    # server, then connect and run
-    if options.nogui:
-        sumoBinary = checkBinary('sumo')
-    else:
-        sumoBinary = checkBinary('sumo-gui')
+    options, args = optParser.parse_args()
+    traffic = TrafficSimulator(N, STEPS, options.nogui)
 
     # first, generate the route file for this simulation
     traffic.generate_routefile("traffic.rou.xml")
 
     # this is the normal way of using traci. sumo is started as a
     # subprocess and then the python script connects and runs
-    traci.start([sumoBinary, "-c", "traffic.sumocfg",
-                             "--queue-output", "outputs/queue/queue.xml"])
+
     traffic.runFuzzy()
     traffic.generate_output_statistics('fuzzy')
