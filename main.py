@@ -7,6 +7,7 @@ import optparse
 import numpy as np
 from helper import array2csv, plot_graph
 from fuzzy_controller import fuzzy_logic_controller
+import matplotlib.pyplot as plt
 
 import xml.etree.ElementTree as ET
 
@@ -320,7 +321,9 @@ class TrafficSimulator:
         traci.close()
         sys.stdout.flush()
 
+
     def generate_output_statistics(self, trafficLightType, showGraph = True):
+
         """
         Generating Statistics for a specific traffic light type
 
@@ -346,6 +349,7 @@ class TrafficSimulator:
         array2csv(["timestep", "waitingtime-lane4"], self.waitingTime["Lane 4"][trafficLightType],
                   f"outputs/statistics/waitingtime-{trafficLightType}-lane4.csv")
 
+
         # Plotting the graph
         if showGraph:
             plot_graph(self.waitingTime["Lane 1"][trafficLightType], "Lane 1")
@@ -364,5 +368,6 @@ if __name__ == "__main__":
 
     # this is the normal way of using traci. sumo is started as a
     # subprocess and then the python script connects and runs
+
     traffic.run_fixed()
     traffic.generate_output_statistics("Fixed")

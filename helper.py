@@ -1,5 +1,6 @@
 import csv
 import matplotlib.pyplot as plt
+import numpy as np
 
 def array2csv(headerArray, dataArray, outputFile):
     csvFile = open(outputFile, 'w', encoding='utf-8')
