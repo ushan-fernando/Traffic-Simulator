@@ -246,7 +246,7 @@ class TrafficSimulator:
         sys.stdout.flush()
 
 
-    def runFuzzy(self):
+    def run_fuzzy(self):
         """
         Running the simulation with Fuzzy Logic
 
@@ -261,6 +261,12 @@ class TrafficSimulator:
         step = 0
         fuzzyLogic = fuzzy_logic_controller()
 
+        # Alias Lanes
+        lane1 = self.waitingTime["Lane 1"]["Fuzzy"]
+        lane2 = self.waitingTime["Lane 2"]["Fuzzy"]
+        lane3 = self.waitingTime["Lane 3"]["Fuzzy"]
+        lane4 = self.waitingTime["Lane 4"]["Fuzzy"]
+
         while traci.simulation.getMinExpectedNumber() > 0:
             traci.simulationStep()
 
@@ -274,18 +280,22 @@ class TrafficSimulator:
                 fuzzyLogic.input['queuingVehicles'] = numVehiclesLane2 + numVehiclesLane4
 
                 if numVehiclesLane1 != 0:
-                    self.waitingTimeLane1.append((step, traci.lane.getWaitingTime(self._lane1) / numVehiclesLane1))
+                    lane1[0].append(step)
+                    lane1[1].append(traci.lane.getWaitingTime(self._lane1) / numVehiclesLane1)
                 if numVehiclesLane3 != 0:
-                    self.waitingTimeLane3.append((step, traci.lane.getWaitingTime(self._lane3) / numVehiclesLane3))
+                    lane3[0].append(step)
+                    lane3[1].append(traci.lane.getWaitingTime(self._lane3) / numVehiclesLane3)
 
             if traci.trafficlight.getPhase("J2") == 2:
                 fuzzyLogic.input['arrivingVehicles'] = numVehiclesLane2 + numVehiclesLane4
                 fuzzyLogic.input['queuingVehicles'] = numVehiclesLane1 + numVehiclesLane3
 
                 if numVehiclesLane2 != 0:
-                    self.waitingTimeLane2.append((step, traci.lane.getWaitingTime(self._lane2) / numVehiclesLane2))
+                    lane2[0].append(step)
+                    lane2[1].append(traci.lane.getWaitingTime(self._lane2) / numVehiclesLane2)
                 if numVehiclesLane4 != 0:
-                    self.waitingTimeLane4.append((step, traci.lane.getWaitingTime(self._lane4) / numVehiclesLane4))        
+                    lane4[0].append(step)
+                    lane4[1].append(traci.lane.getWaitingTime(self._lane4) / numVehiclesLane4)
 
             fuzzyLogic.compute()
             output = fuzzyLogic.output['cycleTime']
