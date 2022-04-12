@@ -7,7 +7,7 @@ def array2csv(headerArray, dataArray, outputFile):
 
     csvFileWriter.writerow(headerArray)
 
-    N = len(dataArray)
+    N = len(dataArray[0])
     for i in range(N):
         csvLine = [dataArray[0][i], dataArray[1][i]]
         csvFileWriter.writerow(csvLine)
