@@ -68,10 +68,12 @@ class TrafficSimulator:
         else:
             self.sumoBinary = checkBinary('sumo-gui')
 
-        self.waitingTimeLane1 = []
-        self.waitingTimeLane2 = []
-        self.waitingTimeLane3 = []
-        self.waitingTimeLane4 = []
+        self.waitingTime = {
+            "Lane 1": {"Fixed": ([], []), "Fuzzy": ([], [])},
+            "Lane 2": {"Fixed": ([], []), "Fuzzy": ([], [])},
+            "Lane 3": {"Fixed": ([], []), "Fuzzy": ([], [])},
+            "Lane 4": {"Fixed": ([], []), "Fuzzy": ([], [])},
+        }
 
         self._lane1 = "E0_0"
         self._lane2 = "E2_0"
@@ -188,7 +190,7 @@ class TrafficSimulator:
             sys.stderr.write("XML indentation only works for python version 3.9 and above. Skipping\n")
         tree.write(file_name)
     
-    def runFixed(self, cycleTime = -1):
+    def run_fixed(self, cycleTime = -1):
         """
         Running the simulation with traffic light cycle time at a fixed time.
 
@@ -219,25 +221,35 @@ class TrafficSimulator:
                                 "--queue-output", "outputs/queue/queue.xml"])
         step = 0
 
+        # Alias Lanes
+        lane1 = self.waitingTime["Lane 1"]["Fixed"]
+        lane2 = self.waitingTime["Lane 2"]["Fixed"]
+        lane3 = self.waitingTime["Lane 3"]["Fixed"]
+        lane4 = self.waitingTime["Lane 4"]["Fixed"]
+
         while traci.simulation.getMinExpectedNumber() > 0:
             traci.simulationStep()
 
             numVehiclesLane1 = traci.lane.getLastStepVehicleNumber(self._lane1)
             numVehiclesLane3 = traci.lane.getLastStepVehicleNumber(self._lane3)
             numVehiclesLane2 = traci.lane.getLastStepVehicleNumber(self._lane2)
-            numVehiclesLane4 = traci.lane.getLastStepVehicleNumber(self._lane4)        
+            numVehiclesLane4 = traci.lane.getLastStepVehicleNumber(self._lane4)
 
             if traci.trafficlight.getPhase("J2") == 0:
                 if numVehiclesLane1 != 0:
-                    self.waitingTimeLane1.append((step, traci.lane.getWaitingTime(self._lane1) / numVehiclesLane1))
+                    lane1[0].append(step)
+                    lane1[1].append(traci.lane.getWaitingTime(self._lane1) / numVehiclesLane1)
                 if numVehiclesLane3 != 0:
-                    self.waitingTimeLane3.append((step, traci.lane.getWaitingTime(self._lane3) / numVehiclesLane3))
+                    lane3[0].append(step)
+                    lane3[1].append(traci.lane.getWaitingTime(self._lane3) / numVehiclesLane3)
 
             if traci.trafficlight.getPhase("J2") == 2:
                 if numVehiclesLane2 != 0:
-                    self.waitingTimeLane2.append((step, traci.lane.getWaitingTime(self._lane2) / numVehiclesLane2))
+                    lane2[0].append(step)
+                    lane2[1].append(traci.lane.getWaitingTime(self._lane2) / numVehiclesLane2)
                 if numVehiclesLane4 != 0:
-                    self.waitingTimeLane4.append((step, traci.lane.getWaitingTime(self._lane4) / numVehiclesLane4))        
+                    lane4[0].append(step)
+                    lane4[1].append(traci.lane.getWaitingTime(self._lane4) / numVehiclesLane4)
 
             step += 1
 
@@ -245,7 +257,7 @@ class TrafficSimulator:
         sys.stdout.flush()
 
 
-    def runFuzzy(self):
+    def run_fuzzy(self):
         """
         Running the simulation with Fuzzy Logic
 
@@ -260,6 +272,12 @@ class TrafficSimulator:
         step = 0
         fuzzyLogic = fuzzy_logic_controller()
 
+        # Alias Lanes
+        lane1 = self.waitingTime["Lane 1"]["Fuzzy"]
+        lane2 = self.waitingTime["Lane 2"]["Fuzzy"]
+        lane3 = self.waitingTime["Lane 3"]["Fuzzy"]
+        lane4 = self.waitingTime["Lane 4"]["Fuzzy"]
+
         while traci.simulation.getMinExpectedNumber() > 0:
             traci.simulationStep()
 
@@ -273,18 +291,22 @@ class TrafficSimulator:
                 fuzzyLogic.input['queuingVehicles'] = numVehiclesLane2 + numVehiclesLane4
 
                 if numVehiclesLane1 != 0:
-                    self.waitingTimeLane1.append((step, traci.lane.getWaitingTime(self._lane1) / numVehiclesLane1))
+                    lane1[0].append(step)
+                    lane1[1].append(traci.lane.getWaitingTime(self._lane1) / numVehiclesLane1)
                 if numVehiclesLane3 != 0:
-                    self.waitingTimeLane3.append((step, traci.lane.getWaitingTime(self._lane3) / numVehiclesLane3))
+                    lane3[0].append(step)
+                    lane3[1].append(traci.lane.getWaitingTime(self._lane3) / numVehiclesLane3)
 
             if traci.trafficlight.getPhase("J2") == 2:
                 fuzzyLogic.input['arrivingVehicles'] = numVehiclesLane2 + numVehiclesLane4
                 fuzzyLogic.input['queuingVehicles'] = numVehiclesLane1 + numVehiclesLane3
 
                 if numVehiclesLane2 != 0:
-                    self.waitingTimeLane2.append((step, traci.lane.getWaitingTime(self._lane2) / numVehiclesLane2))
+                    lane2[0].append(step)
+                    lane2[1].append(traci.lane.getWaitingTime(self._lane2) / numVehiclesLane2)
                 if numVehiclesLane4 != 0:
-                    self.waitingTimeLane4.append((step, traci.lane.getWaitingTime(self._lane4) / numVehiclesLane4))        
+                    lane4[0].append(step)
+                    lane4[1].append(traci.lane.getWaitingTime(self._lane4) / numVehiclesLane4)
 
             fuzzyLogic.compute()
             output = fuzzyLogic.output['cycleTime']
@@ -299,25 +321,41 @@ class TrafficSimulator:
         traci.close()
         sys.stdout.flush()
 
-    def generate_output_statistics(self, name):
+
+    def generate_output_statistics(self, trafficLightType, showGraph = True):
+
         """
-        Generating Statistics
+        Generating Statistics for a specific traffic light type
+
+        Parameters
+        ----------
+        trafficLightType
+            The type of traffic light
+            It can be "Fixed or "Fuzzy"
+        showGraph
+            Determines to show the graph or not
 
         Returns
         -------
         None
         """
         # Writing csv to file
-        array2csv(["timestep", "waitingtime-lane1"], self.waitingTimeLane1, "outputs/statistics/" + name + "-waitingtime-lane1.csv")
-        array2csv(["timestep", "waitingtime-lane2"], self.waitingTimeLane2, "outputs/statistics/" + name + "-waitingtime-lane2.csv")
-        array2csv(["timestep", "waitingtime-lane3"], self.waitingTimeLane3, "outputs/statistics/" + name + "-waitingtime-lane3.csv")
-        array2csv(["timestep", "waitingtime-lane4"], self.waitingTimeLane4, "outputs/statistics/" + name + "-waitingtime-lane4.csv")
+        array2csv(["timestep", "waitingtime-lane1"], self.waitingTime["Lane 1"][trafficLightType],
+                  f"outputs/statistics/waitingtime-{trafficLightType}-lane1.csv")
+        array2csv(["timestep", "waitingtime-lane2"], self.waitingTime["Lane 2"][trafficLightType],
+                  f"outputs/statistics/waitingtime-{trafficLightType}-lane2.csv")
+        array2csv(["timestep", "waitingtime-lane3"], self.waitingTime["Lane 3"][trafficLightType],
+                  f"outputs/statistics/waitingtime-{trafficLightType}-lane3.csv")
+        array2csv(["timestep", "waitingtime-lane4"], self.waitingTime["Lane 4"][trafficLightType],
+                  f"outputs/statistics/waitingtime-{trafficLightType}-lane4.csv")
+
 
         # Plotting the graph
-        plot_graph(self.waitingTimeLane1, "Lane 1")
-        plot_graph(self.waitingTimeLane2, "Lane 2")
-        plot_graph(self.waitingTimeLane3, "Lane 3")
-        plot_graph(self.waitingTimeLane4, "Lane 4")
+        if showGraph:
+            plot_graph(self.waitingTime["Lane 1"][trafficLightType], "Lane 1")
+            plot_graph(self.waitingTime["Lane 2"][trafficLightType], "Lane 2")
+            plot_graph(self.waitingTime["Lane 3"][trafficLightType], "Lane 3")
+            plot_graph(self.waitingTime["Lane 4"][trafficLightType], "Lane 4")
 
 
 # this is the main entry point of this script
@@ -331,5 +369,5 @@ if __name__ == "__main__":
     # this is the normal way of using traci. sumo is started as a
     # subprocess and then the python script connects and runs
 
-    traffic.runFuzzy()
-    traffic.generate_output_statistics('fuzzy')
+    traffic.run_fixed()
+    traffic.generate_output_statistics("Fixed")

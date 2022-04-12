@@ -8,20 +8,16 @@ def array2csv(headerArray, dataArray, outputFile):
 
     csvFileWriter.writerow(headerArray)
 
-    N = len(dataArray)
+    N = len(dataArray[0])
     for i in range(N):
-        csvLine = [dataArray[i][0], dataArray[i][1]]
+        csvLine = [dataArray[0][i], dataArray[1][i]]
         csvFileWriter.writerow(csvLine)
 
 def plot_graph(dataArray, title):
     N = len(dataArray)
-    x = []
-    y = []
-    
-    for i in range(N):
-        x.append(dataArray[i][0])
-        y.append(dataArray[i][1])
-    
+    x = dataArray[0]
+    y = dataArray[1]
+
     plt.plot(x, y)
     plt.title(title)
     plt.xlabel("Time in Simulation / s")
