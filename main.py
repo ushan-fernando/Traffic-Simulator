@@ -7,6 +7,7 @@ import optparse
 import numpy as np
 from helper import array2csv, plot_graph
 from fuzzy_controller import fuzzy_logic_controller
+import matplotlib.pyplot as plt
 
 import xml.etree.ElementTree as ET
 
@@ -239,11 +240,14 @@ class TrafficSimulator:
         options, args = optParser.parse_args()
         return options
     
-    def generate_output_statistics(self):
-        array2csv(["timestep", "waitingtime-lane1"], self.waitingTimeLane1, "outputs/statistics/waitingtime-lane1.csv")
-        array2csv(["timestep", "waitingtime-lane2"], self.waitingTimeLane2, "outputs/statistics/waitingtime-lane2.csv")
-        array2csv(["timestep", "waitingtime-lane3"], self.waitingTimeLane3, "outputs/statistics/waitingtime-lane3.csv")
-        array2csv(["timestep", "waitingtime-lane4"], self.waitingTimeLane4, "outputs/statistics/waitingtime-lane4.csv")
+    def get_output_statistics(self):
+        return [self.waitingTimeLane1, self.waitingTimeLane2, self.waitingTimeLane3, self.waitingTimeLane4]
+    
+    def generate_output_statistics(self, name):
+        array2csv(["timestep", "waitingtime-lane1"], self.waitingTimeLane1, "outputs/statistics/" + name + "-waitingtime-lane1.csv")
+        array2csv(["timestep", "waitingtime-lane2"], self.waitingTimeLane2, "outputs/statistics/" + name + "-waitingtime-lane2.csv")
+        array2csv(["timestep", "waitingtime-lane3"], self.waitingTimeLane3, "outputs/statistics/" + name + "-waitingtime-lane3.csv")
+        array2csv(["timestep", "waitingtime-lane4"], self.waitingTimeLane4, "outputs/statistics/" + name + "-waitingtime-lane4.csv")
 
         plot_graph(self.waitingTimeLane1, "Lane 1")
         plot_graph(self.waitingTimeLane2, "Lane 2")
@@ -271,4 +275,4 @@ if __name__ == "__main__":
     traci.start([sumoBinary, "-c", "traffic.sumocfg",
                              "--queue-output", "outputs/queue/queue.xml"])
     traffic.runFuzzy()
-    traffic.generate_output_statistics()
+    traffic.generate_output_statistics('fuzzy')

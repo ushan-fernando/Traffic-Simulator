@@ -7,7 +7,7 @@ def fuzzy_logic_controller():
     # Input variables and output variable
     arrivingVehicles = ctrl.Antecedent(np.arange(0, 101, 1), 'arrivingVehicles')
     queuingVehicles = ctrl.Antecedent(np.arange(0, 101, 1), 'queuingVehicles')
-    cycleTime = ctrl.Consequent(np.arange(0, 101, 1), 'cycleTime')
+    cycleTime = ctrl.Consequent(np.arange(0, 51, 1), 'cycleTime')
 
     # Fuzzy sets defined by triangular membership function
     arrivingVehicles['low'] = fuzz.trimf(arrivingVehicles.universe, [0, 0, 10])
@@ -35,7 +35,7 @@ def fuzzy_logic_controller():
 
     # Inference and Defuzzification
     trafficController = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule8, rule9])
-    fuzzyLogic = ctrl.ControlSystemSimulation(trafficController)    
+    fuzzyLogic = ctrl.ControlSystemSimulation(trafficController) 
 
     plt.show()
     
