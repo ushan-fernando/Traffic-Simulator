@@ -35,7 +35,23 @@ STEPS = 3600
 N = 3000
 
 class TrafficSimulator:
-    def __init__(self, numberOfCars, steps):
+    """
+    Create a Traffic Simulator
+
+    Parameters
+    ----------
+    numberOfCars
+        Number of cars to simluate
+    steps
+        The amount of virtual time to simulate
+    gui
+        Set to run with gui or no
+    fixedCycleTime
+        The amount of virtual time per cycle for fixed time traffic light simulation
+        Default is 42 virtual seconds
+    """
+    def __init__(self, numberOfCars, steps, gui, fixedCycleTime = 42):
+        # Saving Variables
         self.numberOfCars = numberOfCars
         self.steps = steps
 
@@ -159,7 +175,35 @@ class TrafficSimulator:
             sys.stderr.write("XML indentation only works for python version 3.9 and above. Skipping\n")
         tree.write(file_name)
     
-    def runFixed(self):
+    def runFixed(self, cycleTime = -1):
+        """
+        Running the simulation with traffic light cycle time at a fixed time.
+
+        Parameters
+        ----------
+        cycleTime
+            The cycle time of the fixed timed traffic light
+            Default is set to the value set during object creation
+
+        Returns
+        -------
+        None
+        """
+        # Setting Cycle Time
+        if cycleTime == -1:
+            cycleTime = self.fixedCycleTime
+
+        # Changing Cycle Time
+        tree = ET.parse("traffic.net.xml")
+        root = tree.getroot()
+        tlLogic = root.findall("tlLogic")[0]
+        tlLogic[0].attrib["duration"] = str(cycleTime)
+        tlLogic[2].attrib["duration"]= str(cycleTime)
+        tree.write('traffic.net.xml')
+
+        # Starting SUMO
+        traci.start([self.sumoBinary, "-c", "traffic.sumocfg",
+                                "--queue-output", "outputs/queue/queue.xml"])
         step = 0
 
         while traci.simulation.getMinExpectedNumber() > 0:
@@ -189,6 +233,17 @@ class TrafficSimulator:
 
 
     def runFuzzy(self):
+        """
+        Running the simulation with Fuzzy Logic
+
+        Returns
+        -------
+        None
+        """
+        # Starting SUMO
+        traci.start([self.sumoBinary, "-c", "traffic.sumocfg",
+                                "--queue-output", "outputs/queue/queue.xml"])
+
         step = 0
         fuzzyLogic = fuzzy_logic_controller()
 
