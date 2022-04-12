@@ -299,11 +299,20 @@ class TrafficSimulator:
         sys.stdout.flush()
 
     def generate_output_statistics(self):
+        """
+        Generating Statistics
+
+        Returns
+        -------
+        None
+        """
+        # Writing csv to file
         array2csv(["timestep", "waitingtime-lane1"], self.waitingTimeLane1, "outputs/statistics/waitingtime-lane1.csv")
         array2csv(["timestep", "waitingtime-lane2"], self.waitingTimeLane2, "outputs/statistics/waitingtime-lane2.csv")
         array2csv(["timestep", "waitingtime-lane3"], self.waitingTimeLane3, "outputs/statistics/waitingtime-lane3.csv")
         array2csv(["timestep", "waitingtime-lane4"], self.waitingTimeLane4, "outputs/statistics/waitingtime-lane4.csv")
 
+        # Plotting the graph
         plot_graph(self.waitingTimeLane1, "Lane 1")
         plot_graph(self.waitingTimeLane2, "Lane 2")
         plot_graph(self.waitingTimeLane3, "Lane 3")
