@@ -8,7 +8,6 @@ import numpy as np
 from helper import array2csv, plot_graph
 from fuzzy_controller import fuzzy_logic_controller
 import matplotlib.pyplot as plt
-from scipy import stats, signal
 
 import xml.etree.ElementTree as ET
 
