@@ -8,15 +8,18 @@ def array2csv(headerArray, dataArray, outputFile):
 
     csvFileWriter.writerow(headerArray)
 
-    N = len(dataArray[0])
+    N = len(dataArray["steps"])
     for i in range(N):
         csvLine = [dataArray["steps"][i], dataArray["waitTime"][i]]
         csvFileWriter.writerow(csvLine)
 
-def plot_graph(dataArray, title):
+def plot_graph(dataArray, title, average = False):
     N = len(dataArray)
     x = dataArray["steps"]
-    y = dataArray["waitTime"]
+    if average:
+        y = dataArray["averageOvertime"]
+    else:
+        y = dataArray["waitTime"]
 
     plt.plot(x, y)
     plt.title(title)

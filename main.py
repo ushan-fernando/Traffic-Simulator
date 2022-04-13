@@ -74,11 +74,13 @@ class TrafficSimulator:
                     "steps": [],
                     "waitTime": [],
                     "averageOvertime": [],
+                    "average": 0,
                 },
                 "Fuzzy": {
                     "steps": [],
                     "waitTime": [],
                     "averageOvertime": [],
+                    "average": 0,
                 }
             },
             "Lane 2": {
@@ -86,11 +88,13 @@ class TrafficSimulator:
                     "steps": [],
                     "waitTime": [],
                     "averageOvertime": [],
+                    "average": 0,
                 },
                 "Fuzzy": {
                     "steps": [],
                     "waitTime": [],
                     "averageOvertime": [],
+                    "average": 0,
                 }
             },
             "Lane 3": {
@@ -98,11 +102,13 @@ class TrafficSimulator:
                     "steps": [],
                     "waitTime": [],
                     "averageOvertime": [],
+                    "average": 0,
                 },
                 "Fuzzy": {
                     "steps": [],
                     "waitTime": [],
                     "averageOvertime": [],
+                    "average": 0,
                 }
             },
             "Lane 4": {
@@ -110,11 +116,13 @@ class TrafficSimulator:
                     "steps": [],
                     "waitTime": [],
                     "averageOvertime": [],
+                    "average": 0,
                 },
                 "Fuzzy": {
                     "steps": [],
                     "waitTime": [],
                     "averageOvertime": [],
+                    "average": 0,
                 }
             },
             "All": {
@@ -122,11 +130,13 @@ class TrafficSimulator:
                     "steps": [],
                     "waitTime": [],
                     "averageOvertime": [],
+                    "average": 0,
                 },
                 "Fuzzy": {
                     "steps": [],
                     "waitTime": [],
                     "averageOvertime": [],
+                    "average": 0,
                 }
             },
         }
