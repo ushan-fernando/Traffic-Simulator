@@ -69,10 +69,76 @@ class TrafficSimulator:
             self.sumoBinary = checkBinary('sumo-gui')
 
         self.waitingTime = {
-            "Lane 1": {"Fixed": ([], []), "Fuzzy": ([], [])},
-            "Lane 2": {"Fixed": ([], []), "Fuzzy": ([], [])},
-            "Lane 3": {"Fixed": ([], []), "Fuzzy": ([], [])},
-            "Lane 4": {"Fixed": ([], []), "Fuzzy": ([], [])},
+            "Lane 1": {
+                "Fixed": {
+                    "steps": [],
+                    "waitTime": [],
+                    "averageOvertime": [],
+                    "90th percentile": -1,
+                },
+                "Fuzzy": {
+                    "steps": [],
+                    "waitTime": [],
+                    "averageOvertime": [],
+                    "90th percentile": -1,
+                }
+            },
+            "Lane 2": {
+                "Fixed": {
+                    "steps": [],
+                    "waitTime": [],
+                    "averageOvertime": [],
+                    "90th percentile": -1,
+                },
+                "Fuzzy": {
+                    "steps": [],
+                    "waitTime": [],
+                    "averageOvertime": [],
+                    "90th percentile": -1,
+                }
+            },
+            "Lane 3": {
+                "Fixed": {
+                    "steps": [],
+                    "waitTime": [],
+                    "averageOvertime": [],
+                    "90th percentile": -1,
+                },
+                "Fuzzy": {
+                    "steps": [],
+                    "waitTime": [],
+                    "averageOvertime": [],
+                    "90th percentile": -1,
+                }
+            },
+            "Lane 4": {
+                "Fixed": {
+                    "steps": [],
+                    "waitTime": [],
+                    "averageOvertime": [],
+                    "90th percentile": -1,
+                },
+                "Fuzzy": {
+                    "steps": [],
+                    "waitTime": [],
+                    "averageOvertime": [],
+                    "90th percentile": -1,
+                }
+            },
+            "All": {
+                "Fixed": {
+                    "steps": [],
+                    "waitTime": [0],
+                    "averageOvertime": [],
+                    "90th percentile": -1,
+                },
+                "Fuzzy": {
+                    "steps": [],
+                    "waitTime": [0],
+                    "averageOvertime": [],
+                    "90th percentile": -1,
+                }
+            },
         }
 
         self._lane1 = "E0_0"
@@ -237,19 +303,23 @@ class TrafficSimulator:
 
             if traci.trafficlight.getPhase("J2") == 0:
                 if numVehiclesLane1 != 0:
-                    lane1[0].append(step)
-                    lane1[1].append(traci.lane.getWaitingTime(self._lane1) / numVehiclesLane1)
+                    lane1["steps"].append(step)
+                    lane1["waitTime"].append(traci.lane.getWaitingTime(self._lane1) / numVehiclesLane1)
+                    lane1["averageOvertime"].append(np.mean(lane1["waitTime"]))
                 if numVehiclesLane3 != 0:
-                    lane3[0].append(step)
-                    lane3[1].append(traci.lane.getWaitingTime(self._lane3) / numVehiclesLane3)
+                    lane3["steps"].append(step)
+                    lane3["waitTime"].append(traci.lane.getWaitingTime(self._lane3) / numVehiclesLane3)
+                    lane3["averageOvertime"].append(np.mean(lane1["waitTime"]))
 
             if traci.trafficlight.getPhase("J2") == 2:
                 if numVehiclesLane2 != 0:
-                    lane2[0].append(step)
-                    lane2[1].append(traci.lane.getWaitingTime(self._lane2) / numVehiclesLane2)
+                    lane2["steps"].append(step)
+                    lane2["waitTime"].append(traci.lane.getWaitingTime(self._lane2) / numVehiclesLane2)
+                    lane2["averageOvertime"].append(np.mean(lane1["waitTime"]))
                 if numVehiclesLane4 != 0:
-                    lane4[0].append(step)
-                    lane4[1].append(traci.lane.getWaitingTime(self._lane4) / numVehiclesLane4)
+                    lane4["steps"].append(step)
+                    lane4["waitTime"].append(traci.lane.getWaitingTime(self._lane4) / numVehiclesLane4)
+                    lane4["averageOvertime"].append(np.mean(lane1["waitTime"]))
 
             step += 1
 
@@ -291,22 +361,26 @@ class TrafficSimulator:
                 fuzzyLogic.input['queuingVehicles'] = numVehiclesLane2 + numVehiclesLane4
 
                 if numVehiclesLane1 != 0:
-                    lane1[0].append(step)
-                    lane1[1].append(traci.lane.getWaitingTime(self._lane1) / numVehiclesLane1)
+                    lane1["steps"].append(step)
+                    lane1["waitTime"].append(traci.lane.getWaitingTime(self._lane1) / numVehiclesLane1)
+                    lane1["averageOvertime"].append(np.mean(lane1["waitTime"]))
                 if numVehiclesLane3 != 0:
-                    lane3[0].append(step)
-                    lane3[1].append(traci.lane.getWaitingTime(self._lane3) / numVehiclesLane3)
+                    lane3["steps"].append(step)
+                    lane3["waitTime"].append(traci.lane.getWaitingTime(self._lane3) / numVehiclesLane3)
+                    lane3["averageOvertime"].append(np.mean(lane3["waitTime"]))
 
             if traci.trafficlight.getPhase("J2") == 2:
                 fuzzyLogic.input['arrivingVehicles'] = numVehiclesLane2 + numVehiclesLane4
                 fuzzyLogic.input['queuingVehicles'] = numVehiclesLane1 + numVehiclesLane3
 
                 if numVehiclesLane2 != 0:
-                    lane2[0].append(step)
-                    lane2[1].append(traci.lane.getWaitingTime(self._lane2) / numVehiclesLane2)
+                    lane2["steps"].append(step)
+                    lane2["waitTime"].append(traci.lane.getWaitingTime(self._lane2) / numVehiclesLane2)
+                    lane2["averageOvertime"].append(np.mean(lane2["waitTime"]))
                 if numVehiclesLane4 != 0:
-                    lane4[0].append(step)
-                    lane4[1].append(traci.lane.getWaitingTime(self._lane4) / numVehiclesLane4)
+                    lane4["steps"].append(step)
+                    lane4["waitTime"].append(traci.lane.getWaitingTime(self._lane4) / numVehiclesLane4)
+                    lane4["averageOvertime"].append(np.mean(lane4["waitTime"]))
 
             fuzzyLogic.compute()
             output = fuzzyLogic.output['cycleTime']
@@ -322,7 +396,7 @@ class TrafficSimulator:
         sys.stdout.flush()
 
 
-    def generate_output_statistics(self, trafficLightType, showGraph = True):
+    def generate_output_statistics(self, trafficLightType, showGraph = True, average = False):
 
         """
         Generating Statistics for a specific traffic light type
@@ -334,6 +408,8 @@ class TrafficSimulator:
             It can be "Fixed or "Fuzzy"
         showGraph
             Determines to show the graph or not
+        average
+            Determines if the graph is going to be average of wait time over time or not
 
         Returns
         -------
@@ -352,10 +428,79 @@ class TrafficSimulator:
 
         # Plotting the graph
         if showGraph:
-            plot_graph(self.waitingTime["Lane 1"][trafficLightType], "Lane 1")
-            plot_graph(self.waitingTime["Lane 2"][trafficLightType], "Lane 2")
-            plot_graph(self.waitingTime["Lane 3"][trafficLightType], "Lane 3")
-            plot_graph(self.waitingTime["Lane 4"][trafficLightType], "Lane 4")
+            plot_graph(self.waitingTime["Lane 1"][trafficLightType], "Lane 1", average)
+            plot_graph(self.waitingTime["Lane 2"][trafficLightType], "Lane 2", average)
+            plot_graph(self.waitingTime["Lane 3"][trafficLightType], "Lane 3", average)
+            plot_graph(self.waitingTime["Lane 4"][trafficLightType], "Lane 4", average)
+
+    def find_90th_percentile(self):
+        """
+        Find the average of the 90th percentile of all the lanes
+
+        Parameters
+        ----------
+        mode
+
+        Returns
+        -------
+        dict
+            The average of the 90th percentile of all the lanes
+            {Fixed, Fuzzy}
+        """
+        # Finding 90th percentile
+        for lane in self.waitingTime.values():
+            # Skipping All
+            if len(lane["Fixed"]["waitTime"]) == 1:
+                continue
+            # Finding 90th percentile
+            lane["Fixed"]["90th percentile"] = np.percentile(lane["Fixed"]["waitTime"], 90)
+            lane["Fuzzy"]["90th percentile"] = np.percentile(lane["Fuzzy"]["waitTime"], 90)
+
+        # Putting all 90th percentile into an array
+        all_mean_fixed = []
+        all_mean_fuzzy = []
+        for lane in self.waitingTime.values():
+            # Skipping All
+            if len(lane["Fixed"]["waitTime"]) == 1:
+                continue
+            # Appending to array
+            all_mean_fixed.append(lane["Fixed"]["90th percentile"])
+            all_mean_fuzzy.append(lane["Fuzzy"]["90th percentile"])
+
+        # Finding mean of All
+        self.waitingTime["All"]["Fixed"]["90th percentile"] = np.mean(all_mean_fixed)
+        self.waitingTime["All"]["Fuzzy"]["90th percentile"] = np.mean(all_mean_fuzzy)
+
+        # Saving into dictionary
+        average = {
+            "Fixed": self.waitingTime["All"]["Fixed"]["90th percentile"],
+            "Fuzzy": self.waitingTime["All"]["Fuzzy"]["90th percentile"],
+        }
+        return average
+
+    def get_90th_percentile(self, lane):
+        """
+        Get the 90th percentile of a specific lane
+        self.find_90th_perecentile must be called in order for the results to be correct
+
+        Prameters
+        ---------
+        lane
+            The lane to return
+            Can be "Lane 1" to "Lane 4" or "All"
+
+        Returns
+        -------
+        dict
+            The average of the 90th percentile of the specified lanes
+            {Fixed, Fuzzy}
+        """
+        percentile = {
+            "Fixed": self.waitingTime[lane]["Fixed"]["90th percentile"],
+            "Fuzzy": self.waitingTime[lane]["Fuzzy"]["90th percentile"],
+        }
+        return percentile
+
 
 
 # this is the main entry point of this script
@@ -371,3 +516,7 @@ if __name__ == "__main__":
 
     traffic.run_fixed()
     traffic.generate_output_statistics("Fixed")
+    traffic.run_fuzzy()
+    traffic.generate_output_statistics("Fuzzy")
+    traffic.find_90th_percentile()
+    print(traffic.get_90th_percentile("Lane 1"))
