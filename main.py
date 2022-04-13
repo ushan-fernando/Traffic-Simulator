@@ -8,6 +8,7 @@ import numpy as np
 from helper import array2csv, plot_graph
 from fuzzy_controller import fuzzy_logic_controller
 import matplotlib.pyplot as plt
+from scipy import stats, signal
 
 import xml.etree.ElementTree as ET
 
@@ -74,13 +75,13 @@ class TrafficSimulator:
                     "steps": [],
                     "waitTime": [],
                     "averageOvertime": [],
-                    "average": 0,
+                    "90th percentile": -1,
                 },
                 "Fuzzy": {
                     "steps": [],
                     "waitTime": [],
                     "averageOvertime": [],
-                    "average": 0,
+                    "90th percentile": -1,
                 }
             },
             "Lane 2": {
@@ -88,13 +89,13 @@ class TrafficSimulator:
                     "steps": [],
                     "waitTime": [],
                     "averageOvertime": [],
-                    "average": 0,
+                    "90th percentile": -1,
                 },
                 "Fuzzy": {
                     "steps": [],
                     "waitTime": [],
                     "averageOvertime": [],
-                    "average": 0,
+                    "90th percentile": -1,
                 }
             },
             "Lane 3": {
@@ -102,13 +103,13 @@ class TrafficSimulator:
                     "steps": [],
                     "waitTime": [],
                     "averageOvertime": [],
-                    "average": 0,
+                    "90th percentile": -1,
                 },
                 "Fuzzy": {
                     "steps": [],
                     "waitTime": [],
                     "averageOvertime": [],
-                    "average": 0,
+                    "90th percentile": -1,
                 }
             },
             "Lane 4": {
@@ -116,27 +117,27 @@ class TrafficSimulator:
                     "steps": [],
                     "waitTime": [],
                     "averageOvertime": [],
-                    "average": 0,
+                    "90th percentile": -1,
                 },
                 "Fuzzy": {
                     "steps": [],
                     "waitTime": [],
                     "averageOvertime": [],
-                    "average": 0,
+                    "90th percentile": -1,
                 }
             },
             "All": {
                 "Fixed": {
                     "steps": [],
-                    "waitTime": [],
+                    "waitTime": [0],
                     "averageOvertime": [],
-                    "average": 0,
+                    "90th percentile": -1,
                 },
                 "Fuzzy": {
                     "steps": [],
-                    "waitTime": [],
+                    "waitTime": [0],
                     "averageOvertime": [],
-                    "average": 0,
+                    "90th percentile": -1,
                 }
             },
         }
@@ -428,10 +429,79 @@ class TrafficSimulator:
 
         # Plotting the graph
         if showGraph:
-            plot_graph(self.waitingTime["Lane 1"][trafficLightType], "Lane 1")
-            plot_graph(self.waitingTime["Lane 2"][trafficLightType], "Lane 2")
-            plot_graph(self.waitingTime["Lane 3"][trafficLightType], "Lane 3")
-            plot_graph(self.waitingTime["Lane 4"][trafficLightType], "Lane 4")
+            plot_graph(self.waitingTime["Lane 1"][trafficLightType], "Lane 1", average)
+            plot_graph(self.waitingTime["Lane 2"][trafficLightType], "Lane 2", average)
+            plot_graph(self.waitingTime["Lane 3"][trafficLightType], "Lane 3", average)
+            plot_graph(self.waitingTime["Lane 4"][trafficLightType], "Lane 4", average)
+
+    def find_90th_percentile(self):
+        """
+        Find the average of the 90th percentile of all the lanes
+
+        Parameters
+        ----------
+        mode
+
+        Returns
+        -------
+        dict
+            The average of the 90th percentile of all the lanes
+            {Fixed, Fuzzy}
+        """
+        # Finding 90th percentile
+        for lane in self.waitingTime.values():
+            # Skipping All
+            if len(lane["Fixed"]["waitTime"]) == 1:
+                continue
+            # Finding 90th percentile
+            lane["Fixed"]["90th percentile"] = np.percentile(lane["Fixed"]["waitTime"], 90)
+            lane["Fuzzy"]["90th percentile"] = np.percentile(lane["Fuzzy"]["waitTime"], 90)
+
+        # Putting all 90th percentile into an array
+        all_mean_fixed = []
+        all_mean_fuzzy = []
+        for lane in self.waitingTime.values():
+            # Skipping All
+            if len(lane["Fixed"]["waitTime"]) == 1:
+                continue
+            # Appending to array
+            all_mean_fixed.append(lane["Fixed"]["90th percentile"])
+            all_mean_fuzzy.append(lane["Fuzzy"]["90th percentile"])
+
+        # Finding mean of All
+        self.waitingTime["All"]["Fixed"]["90th percentile"] = np.mean(all_mean_fixed)
+        self.waitingTime["All"]["Fuzzy"]["90th percentile"] = np.mean(all_mean_fuzzy)
+
+        # Saving into dictionary
+        average = {
+            "Fixed": self.waitingTime["All"]["Fixed"]["90th percentile"],
+            "Fuzzy": self.waitingTime["All"]["Fuzzy"]["90th percentile"],
+        }
+        return average
+
+    def get_90th_percentile(self, lane):
+        """
+        Get the 90th percentile of a specific lane
+        self.find_90th_perecentile must be called in order for the results to be correct
+
+        Prameters
+        ---------
+        lane
+            The lane to return
+            Can be "Lane 1" to "Lane 4" or "All"
+
+        Returns
+        -------
+        dict
+            The average of the 90th percentile of the specified lanes
+            {Fixed, Fuzzy}
+        """
+        percentile = {
+            "Fixed": self.waitingTime[lane]["Fixed"]["90th percentile"],
+            "Fuzzy": self.waitingTime[lane]["Fuzzy"]["90th percentile"],
+        }
+        return percentile
+
 
 
 # this is the main entry point of this script
@@ -447,3 +517,7 @@ if __name__ == "__main__":
 
     traffic.run_fixed()
     traffic.generate_output_statistics("Fixed")
+    traffic.run_fuzzy()
+    traffic.generate_output_statistics("Fuzzy")
+    traffic.find_90th_percentile()
+    print(traffic.get_90th_percentile("Lane 1"))
