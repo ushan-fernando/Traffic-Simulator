@@ -305,23 +305,21 @@ class TrafficSimulator:
                 if numVehiclesLane1 != 0:
                     lane1["steps"].append(step)
                     lane1["waitTime"].append(traci.lane.getWaitingTime(self._lane1) / numVehiclesLane1)
-#                    lane1[3].append(np.mean(lane1[1]))
-#                    lane1[2] = signal.convolve(lane1[1],b) #filter output using convolution
-                    #lane1[2] = signal.lfilter(b,a,lane1[1]) #filter output using lfilter function
+                    lane1["averageOvertime"].append(np.mean(lane1["waitTime"]))
                 if numVehiclesLane3 != 0:
                     lane3["steps"].append(step)
                     lane3["waitTime"].append(traci.lane.getWaitingTime(self._lane3) / numVehiclesLane3)
-#                    lane3[2].append(np.mean(lane3[1]))
+                    lane3["averageOvertime"].append(np.mean(lane1["waitTime"]))
 
             if traci.trafficlight.getPhase("J2") == 2:
                 if numVehiclesLane2 != 0:
                     lane2["steps"].append(step)
                     lane2["waitTime"].append(traci.lane.getWaitingTime(self._lane2) / numVehiclesLane2)
-#                    lane2[2].append(np.mean(lane2[1]))
+                    lane2["averageOvertime"].append(np.mean(lane1["waitTime"]))
                 if numVehiclesLane4 != 0:
                     lane4["steps"].append(step)
                     lane4["waitTime"].append(traci.lane.getWaitingTime(self._lane4) / numVehiclesLane4)
-#                    lane4[2].append(np.mean(lane4[1]))
+                    lane4["averageOvertime"].append(np.mean(lane1["waitTime"]))
 
             step += 1
 
@@ -365,9 +363,11 @@ class TrafficSimulator:
                 if numVehiclesLane1 != 0:
                     lane1["steps"].append(step)
                     lane1["waitTime"].append(traci.lane.getWaitingTime(self._lane1) / numVehiclesLane1)
+                    lane1["averageOvertime"].append(np.mean(lane1["waitTime"]))
                 if numVehiclesLane3 != 0:
                     lane3["steps"].append(step)
                     lane3["waitTime"].append(traci.lane.getWaitingTime(self._lane3) / numVehiclesLane3)
+                    lane3["averageOvertime"].append(np.mean(lane3["waitTime"]))
 
             if traci.trafficlight.getPhase("J2") == 2:
                 fuzzyLogic.input['arrivingVehicles'] = numVehiclesLane2 + numVehiclesLane4
@@ -376,9 +376,11 @@ class TrafficSimulator:
                 if numVehiclesLane2 != 0:
                     lane2["steps"].append(step)
                     lane2["waitTime"].append(traci.lane.getWaitingTime(self._lane2) / numVehiclesLane2)
+                    lane2["averageOvertime"].append(np.mean(lane2["waitTime"]))
                 if numVehiclesLane4 != 0:
                     lane4["steps"].append(step)
                     lane4["waitTime"].append(traci.lane.getWaitingTime(self._lane4) / numVehiclesLane4)
+                    lane4["averageOvertime"].append(np.mean(lane4["waitTime"]))
 
             fuzzyLogic.compute()
             output = fuzzyLogic.output['cycleTime']
@@ -394,7 +396,7 @@ class TrafficSimulator:
         sys.stdout.flush()
 
 
-    def generate_output_statistics(self, trafficLightType, showGraph = True):
+    def generate_output_statistics(self, trafficLightType, showGraph = True, average = False):
 
         """
         Generating Statistics for a specific traffic light type
@@ -406,6 +408,8 @@ class TrafficSimulator:
             It can be "Fixed or "Fuzzy"
         showGraph
             Determines to show the graph or not
+        average
+            Determines if the graph is going to be average of wait time over time or not
 
         Returns
         -------
