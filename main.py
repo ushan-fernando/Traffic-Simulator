@@ -309,17 +309,17 @@ class TrafficSimulator:
                 if numVehiclesLane3 != 0:
                     lane3["steps"].append(step)
                     lane3["waitTime"].append(traci.lane.getWaitingTime(self._lane3) / numVehiclesLane3)
-                    lane3["averageOvertime"].append(np.mean(lane1["waitTime"]))
+                    lane3["averageOvertime"].append(np.mean(lane3["waitTime"]))
 
             if traci.trafficlight.getPhase("J2") == 2:
                 if numVehiclesLane2 != 0:
                     lane2["steps"].append(step)
                     lane2["waitTime"].append(traci.lane.getWaitingTime(self._lane2) / numVehiclesLane2)
-                    lane2["averageOvertime"].append(np.mean(lane1["waitTime"]))
+                    lane2["averageOvertime"].append(np.mean(lane2["waitTime"]))
                 if numVehiclesLane4 != 0:
                     lane4["steps"].append(step)
                     lane4["waitTime"].append(traci.lane.getWaitingTime(self._lane4) / numVehiclesLane4)
-                    lane4["averageOvertime"].append(np.mean(lane1["waitTime"]))
+                    lane4["averageOvertime"].append(np.mean(lane4["waitTime"]))
 
             step += 1
 
