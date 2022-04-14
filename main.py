@@ -396,7 +396,7 @@ class TrafficSimulator:
         sys.stdout.flush()
 
 
-    def generate_output_statistics(self, trafficLightType, showGraph = True, average = False):
+    def generate_output_statistics(self, trafficLightType, showGraph = True, singular = False, average = False):
 
         """
         Generating Statistics for a specific traffic light type
@@ -408,8 +408,13 @@ class TrafficSimulator:
             It can be "Fixed or "Fuzzy"
         showGraph
             Determines to show the graph or not
+            Default is True
+        singular
+            Determines if data of each lanes should be plotted on the same plot or not
+            Default is False
         average
             Determines if the graph is going to be average of wait time over time or not
+            Default is False
 
         Returns
         -------
