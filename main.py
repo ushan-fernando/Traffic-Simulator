@@ -5,7 +5,7 @@ import os
 import sys
 import optparse
 import numpy as np
-from helper import array2csv, plot_graph
+from helper import *
 from fuzzy_controller import fuzzy_logic_controller
 import matplotlib.pyplot as plt
 
@@ -396,7 +396,7 @@ class TrafficSimulator:
         sys.stdout.flush()
 
 
-    def generate_output_statistics(self, trafficLightType, showGraph = True, average = False):
+    def generate_output_statistics(self, trafficLightType, showGraph = True, singular = False, average = False):
 
         """
         Generating Statistics for a specific traffic light type
@@ -408,8 +408,13 @@ class TrafficSimulator:
             It can be "Fixed or "Fuzzy"
         showGraph
             Determines to show the graph or not
+            Default is True
+        singular
+            Determines if data of each lanes should be plotted on the same plot or not
+            Default is False
         average
             Determines if the graph is going to be average of wait time over time or not
+            Default is False
 
         Returns
         -------
@@ -428,10 +433,13 @@ class TrafficSimulator:
 
         # Plotting the graph
         if showGraph:
-            plot_graph(self.waitingTime["Lane 1"][trafficLightType], "Lane 1", average)
-            plot_graph(self.waitingTime["Lane 2"][trafficLightType], "Lane 2", average)
-            plot_graph(self.waitingTime["Lane 3"][trafficLightType], "Lane 3", average)
-            plot_graph(self.waitingTime["Lane 4"][trafficLightType], "Lane 4", average)
+            if singular:
+                plot_graph(self.waitingTime["Lane 1"][trafficLightType], "Lane 1", average)
+                plot_graph(self.waitingTime["Lane 2"][trafficLightType], "Lane 2", average)
+                plot_graph(self.waitingTime["Lane 3"][trafficLightType], "Lane 3", average)
+                plot_graph(self.waitingTime["Lane 4"][trafficLightType], "Lane 4", average)
+            else:
+                plot_graphs(self.waitingTime, trafficLightType, average)
 
     def find_90th_percentile(self):
         """
