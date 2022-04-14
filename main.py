@@ -5,7 +5,7 @@ import os
 import sys
 import optparse
 import numpy as np
-from helper import array2csv, plot_graph
+from helper import *
 from fuzzy_controller import fuzzy_logic_controller
 import matplotlib.pyplot as plt
 
@@ -428,10 +428,13 @@ class TrafficSimulator:
 
         # Plotting the graph
         if showGraph:
-            plot_graph(self.waitingTime["Lane 1"][trafficLightType], "Lane 1", average)
-            plot_graph(self.waitingTime["Lane 2"][trafficLightType], "Lane 2", average)
-            plot_graph(self.waitingTime["Lane 3"][trafficLightType], "Lane 3", average)
-            plot_graph(self.waitingTime["Lane 4"][trafficLightType], "Lane 4", average)
+            if singular:
+                plot_graph(self.waitingTime["Lane 1"][trafficLightType], "Lane 1", average)
+                plot_graph(self.waitingTime["Lane 2"][trafficLightType], "Lane 2", average)
+                plot_graph(self.waitingTime["Lane 3"][trafficLightType], "Lane 3", average)
+                plot_graph(self.waitingTime["Lane 4"][trafficLightType], "Lane 4", average)
+            else:
+                plot_graphs(self.waitingTime, trafficLightType, average)
 
     def find_90th_percentile(self):
         """
